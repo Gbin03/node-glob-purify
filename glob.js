@@ -52,14 +52,14 @@ var globSync = require('./sync.js')
 var common = require('./common.js')
 var setopts = common.setopts
 var ownProp = common.ownProp
-var inflight = require('inflight')
+var inflight = require('./inflight.js')
 var util = require('util')
 var childrenIgnored = common.childrenIgnored
 var isIgnored = common.isIgnored
 
 var once = require('once')
 
-function glob (pattern, options, cb) {
+function glob(pattern, options, cb) {
   if (typeof options === 'function') cb = options, options = {}
   if (!options) options = {}
 
@@ -78,7 +78,7 @@ var GlobSync = glob.GlobSync = globSync.GlobSync
 // old api surface
 glob.glob = glob
 
-function extend (origin, add) {
+function extend(origin, add) {
   if (add === null || typeof add !== 'object') {
     return origin
   }
@@ -114,7 +114,7 @@ glob.hasMagic = function (pattern, options_) {
 
 glob.Glob = Glob
 inherits(Glob, EE)
-function Glob (pattern, options, cb) {
+function Glob(pattern, options, cb) {
   if (typeof options === 'function') {
     cb = options
     options = null
@@ -163,12 +163,12 @@ function Glob (pattern, options, cb) {
     return done()
 
   var sync = true
-  for (var i = 0; i < n; i ++) {
+  for (var i = 0; i < n; i++) {
     this._process(this.minimatch.set[i], i, false, done)
   }
   sync = false
 
-  function done () {
+  function done() {
     --self._processing
     if (self._processing <= 0) {
       if (sync) {
@@ -208,7 +208,7 @@ Glob.prototype._realpath = function () {
   for (var i = 0; i < this.matches.length; i++)
     this._realpathSet(i, next)
 
-  function next () {
+  function next() {
     if (--n === 0)
       self._finish()
   }
@@ -275,7 +275,7 @@ Glob.prototype.resume = function () {
     if (this._emitQueue.length) {
       var eq = this._emitQueue.slice(0)
       this._emitQueue.length = 0
-      for (var i = 0; i < eq.length; i ++) {
+      for (var i = 0; i < eq.length; i++) {
         var e = eq[i]
         this._emitMatch(e[0], e[1])
       }
@@ -283,7 +283,7 @@ Glob.prototype.resume = function () {
     if (this._processQueue.length) {
       var pq = this._processQueue.slice(0)
       this._processQueue.length = 0
-      for (var i = 0; i < pq.length; i ++) {
+      for (var i = 0; i < pq.length; i++) {
         var p = pq[i]
         this._processing--
         this._process(p[0], p[1], p[2], p[3])
@@ -310,7 +310,7 @@ Glob.prototype._process = function (pattern, index, inGlobStar, cb) {
   // Get the first [n] parts of pattern that are all strings.
   var n = 0
   while (typeof pattern[n] === 'string') {
-    n ++
+    n++
   }
   // now n is the index of the first one that is *not* a string.
 
@@ -343,9 +343,9 @@ Glob.prototype._process = function (pattern, index, inGlobStar, cb) {
   if (prefix === null)
     read = '.'
   else if (isAbsolute(prefix) ||
-      isAbsolute(pattern.map(function (p) {
-        return typeof p === 'string' ? p : '[*]'
-      }).join('/'))) {
+    isAbsolute(pattern.map(function (p) {
+      return typeof p === 'string' ? p : '[*]'
+    }).join('/'))) {
     if (!prefix || !isAbsolute(prefix))
       prefix = '/' + prefix
     read = prefix
@@ -416,7 +416,7 @@ Glob.prototype._processReaddir2 = function (prefix, read, abs, remain, index, in
     if (!this.matches[index])
       this.matches[index] = Object.create(null)
 
-    for (var i = 0; i < len; i ++) {
+    for (var i = 0; i < len; i++) {
       var e = matchedEntries[i]
       if (prefix) {
         if (prefix !== '/')
@@ -437,7 +437,7 @@ Glob.prototype._processReaddir2 = function (prefix, read, abs, remain, index, in
   // now test all matched entries as stand-ins for that part
   // of the pattern.
   remain.shift()
-  for (var i = 0; i < len; i ++) {
+  for (var i = 0; i < len; i++) {
     var e = matchedEntries[i]
     var newPattern
     if (prefix) {
@@ -505,7 +505,7 @@ Glob.prototype._readdirInGlobStar = function (abs, cb) {
   if (lstatcb)
     self.fs.lstat(abs, lstatcb)
 
-  function lstatcb_ (er, lstat) {
+  function lstatcb_(er, lstat) {
     if (er && er.code === 'ENOENT')
       return cb()
 
@@ -526,7 +526,7 @@ Glob.prototype._readdir = function (abs, inGlobStar, cb) {
   if (this.aborted)
     return
 
-  cb = inflight('readdir\0'+abs+'\0'+inGlobStar, cb)
+  cb = inflight('readdir\0' + abs + '\0' + inGlobStar, cb)
   if (!cb)
     return
 
@@ -547,7 +547,7 @@ Glob.prototype._readdir = function (abs, inGlobStar, cb) {
   self.fs.readdir(abs, readdirCb(this, abs, cb))
 }
 
-function readdirCb (self, abs, cb) {
+function readdirCb(self, abs, cb) {
   return function (er, entries) {
     if (er)
       self._readdirError(abs, er, cb)
@@ -564,7 +564,7 @@ Glob.prototype._readdirEntries = function (abs, entries, cb) {
   // assume that everything in there exists, so we can avoid
   // having to stat it a second time.
   if (!this.mark && !this.stat) {
-    for (var i = 0; i < entries.length; i ++) {
+    for (var i = 0; i < entries.length; i++) {
       var e = entries[i]
       if (abs === '/')
         e = abs + e
@@ -639,7 +639,7 @@ Glob.prototype._processGlobStar2 = function (prefix, read, abs, remain, index, i
   // test without the globstar, and with every child both below
   // and replacing the globstar.
   var remainWithoutGlobStar = remain.slice(1)
-  var gspref = prefix ? [ prefix ] : []
+  var gspref = prefix ? [prefix] : []
   var noGlobStar = gspref.concat(remainWithoutGlobStar)
 
   // the noGlobStar pattern exits the inGlobStar state
@@ -750,7 +750,7 @@ Glob.prototype._stat = function (f, cb) {
   if (statcb)
     self.fs.lstat(abs, statcb)
 
-  function lstatcb_ (er, lstat) {
+  function lstatcb_(er, lstat) {
     if (lstat && lstat.isSymbolicLink()) {
       // If it's a symlink, then treat it as the target, unless
       // the target does not exist, then treat it as a file.
