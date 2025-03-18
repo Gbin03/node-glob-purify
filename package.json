@@ -8,13 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/isaacs/node-glob.git"
+    "url": "git://github.com/Gbin03/node-glob-purify.git"
   },
   "main": "glob.js",
   "files": [
     "glob.js",
     "sync.js",
-    "common.js"
+    "common.js",
+    "inflight.js"
   ],
   "engines": {
     "node": "*"
